@@ -1,3 +1,13 @@
+<script>
+	let roomId = $state('');
+
+	const quickJoin = () => {
+		roomId = roomId.trim();
+		if (!roomId) return;
+		window.location.href = `/call/${encodeURIComponent(roomId)}`;
+	};
+</script>
+
 <svelte:head>
 	<title>DarkLink | 1:1 Videotelefonie</title>
 	<meta
@@ -19,6 +29,27 @@
 				Erstelle einen Raum, teile den Link und starte einen direkten Videoanruf inklusive Mute,
 				Kamera-Toggle und Audio/Video-Filtern.
 			</p>
+		</section>
+
+        		<section
+			class="grid content-start gap-4 rounded-2xl border border-slate-700 bg-slate-900/70 p-6 backdrop-blur"
+		>
+			<label for="room" class="text-sm font-medium text-slate-300">Raum-ID</label>
+			<input
+				id="room"
+				type="text"
+				bind:value={roomId}
+				placeholder="z.B. itp-demo-01"
+				onkeydown={(event) => event.key === 'Enter' && quickJoin()}
+				class="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 ring-sky-400 transition outline-none focus:ring-2"
+			/>
+			<button
+				onclick={quickJoin}
+				class="cursor-pointer rounded-xl bg-linear-to-r from-sky-400 to-cyan-300 px-4 py-3 font-bold text-sky-950"
+			>
+				Zum Call
+			</button>
+			<p class="m-0 text-sm text-slate-400">Maximal 2 Teilnehmende pro Raum.</p>
 		</section>
 	</div>
 </main>
