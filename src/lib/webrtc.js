@@ -12,6 +12,20 @@ const defaultIceServers = [
 		: [])
 ];
 
+const VIDEO_FILTERS = {
+	none: 'none',
+	grayscale: 'grayscale(1)',
+	sepia: 'sepia(0.85)',
+	cinema: 'contrast(1.3) saturate(1.2)'
+};
+
+const AUDIO_FILTERS = {
+	normal: [0, 22050, 1],
+	boost: [0, 22050, 1.8],
+	quiet: [0, 22050, 0.55],
+	radio: [600, 2800, 1.1]
+};
+
 export const createWebRTCClient = ({
 	onLocalStream,
 	onRemoteStream,
@@ -21,6 +35,8 @@ export const createWebRTCClient = ({
 }) => {
 	let localStream, outgoingStream, peerConnection;
 	let pendingCandidates = [];
+	let activeVideoFilter = 'none';
+	let activeAudioFilter = 'normal';
 	const audio = { context: null, source: null, highpass: null, lowpass: null, gain: null };
 	const video = { canvas: null, ctx: null, element: null, loopId: null };
 
@@ -28,6 +44,32 @@ export const createWebRTCClient = ({
 	const toggle = (tracks) => {
 		tracks?.forEach((t) => (t.enabled = !t.enabled));
 		return tracks?.[0]?.enabled ?? false;
+	};
+
+	const applyAudioFilter = (mode = activeAudioFilter) => {
+		if (!audio.highpass || !audio.lowpass || !audio.gain) return;
+		const [highpass, lowpass, gain] = AUDIO_FILTERS[mode] || AUDIO_FILTERS.normal;
+		audio.highpass.frequency.value = highpass;
+		audio.lowpass.frequency.value = lowpass;
+		audio.gain.gain.value = gain;
+	};
+
+	const createProcessedAudioTrack = (track) => {
+		if (!track) return null;
+		audio.context = new AudioContext();
+		audio.source = audio.context.createMediaStreamSource(new MediaStream([track]));
+		audio.highpass = audio.context.createBiquadFilter();
+		audio.lowpass = audio.context.createBiquadFilter();
+		audio.gain = audio.context.createGain();
+		audio.highpass.type = 'highpass';
+		audio.lowpass.type = 'lowpass';
+		const destination = audio.context.createMediaStreamDestination();
+		audio.source.connect(audio.highpass);
+		audio.highpass.connect(audio.lowpass);
+		audio.lowpass.connect(audio.gain);
+		audio.gain.connect(destination);
+		applyAudioFilter();
+		return destination.stream.getAudioTracks()[0] || null;
 	};
 
 	const createProcessedVideoTrack = async (track) => {
@@ -44,6 +86,7 @@ export const createWebRTCClient = ({
 		await video.element.play();
 		const draw = () => {
 			if (!video.ctx || !video.element) return;
+			video.ctx.filter = VIDEO_FILTERS[activeVideoFilter] || VIDEO_FILTERS.none;
 			video.ctx.drawImage(video.element, 0, 0, video.canvas.width, video.canvas.height);
 			video.loopId = requestAnimationFrame(draw);
 		};
@@ -113,6 +156,15 @@ export const createWebRTCClient = ({
 		await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
 	};
 
+	const setAudioFilter = (mode) => {
+		activeAudioFilter = mode;
+		applyAudioFilter(mode);
+	};
+
+	const setVideoFilter = (mode) => {
+		activeVideoFilter = mode;
+	};
+
 	const resetPeer = () => {
 		pendingCandidates = [];
 		peerConnection?.close();
@@ -155,6 +207,8 @@ export const createWebRTCClient = ({
 		handleIceCandidate,
 		toggleMute: () => toggle(localStream?.getAudioTracks()),
 		toggleCamera: () => toggle(localStream?.getVideoTracks()),
+		setAudioFilter,
+		setVideoFilter,
 		resetPeer,
 		stop
 	};
