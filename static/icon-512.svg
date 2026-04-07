@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="DarkLink icon">
+	<defs>
+		<linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+			<stop offset="0%" stop-color="#0ea5e9" />
+			<stop offset="100%" stop-color="#14b8a6" />
+		</linearGradient>
+	</defs>
+	<rect width="512" height="512" rx="112" fill="#020617" />
+	<rect x="52" y="52" width="408" height="408" rx="88" fill="url(#bg)" opacity="0.2" />
+	<path d="M141 148h230c16 0 30 14 30 30v155c0 16-14 30-30 30H141c-16 0-30-14-30-30V178c0-16 14-30 30-30zm54 59v96l81-48-81-48zm176 10l34-26v128l-34-26V217z" fill="#e2e8f0" />
+</svg>
