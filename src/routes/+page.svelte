@@ -31,7 +31,7 @@
 			</p>
 		</section>
 
-        		<section
+		<section
 			class="grid content-start gap-4 rounded-2xl border border-slate-700 bg-slate-900/70 p-6 backdrop-blur"
 		>
 			<label for="room" class="text-sm font-medium text-slate-300">Raum-ID</label>
